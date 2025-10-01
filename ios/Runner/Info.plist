@@ -45,5 +45,11 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Pro nalezení geocache a zobrazení Vaší polohy na mapě potřebujeme přístup k Vaší GPS poloze, i když je aplikace na pozadí.</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>Pro nalezení geocache a zobrazení Vaší polohy na mapě potřebujeme přístup k Vaší GPS poloze, i když je aplikace na pozadí.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Pro nalezení geocache a zobrazení Vaší polohy na mapě potřebujeme přístup k Vaší GPS poloze, i když je aplikace na pozadí.</string>
 </dict>
 </plist>

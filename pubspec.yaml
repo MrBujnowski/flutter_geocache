@@ -30,6 +30,17 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+    
+    # Mapové knihovny
+  flutter_map: ^6.1.0 # Hlavní knihovna pro mapu (Leaflet/OpenStreetMap)
+  latlong2: ^0.9.1    # Nástroje pro práci s Lat/Lon souřadnicemi (vyžadováno flutter_map)
+  
+  # Získávání GPS polohy a výpočet vzdálenosti
+  geolocator: ^11.0.0 # Pro získání aktuální polohy uživatele
+  
+  # Nástroj pro žádost o runtime oprávnění (např. poloha)
+  permission_handler: ^11.3.1 # Pro správu přístupu k poloze (nutné pro Android/iOS)
+
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
