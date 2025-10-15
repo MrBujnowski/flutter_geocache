@@ -1,3 +1,5 @@
+// lib/src/features/map/presentation/map_screen.dart
+
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
@@ -152,6 +154,7 @@ class _MapScreenState extends State<MapScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      // Používáme tmavě šedou pro pozadí
       backgroundColor: Colors.blueGrey[900],
       appBar: AppBar(
         backgroundColor: Colors.teal,
