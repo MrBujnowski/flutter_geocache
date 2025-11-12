@@ -8,6 +8,8 @@ import 'package:permission_handler/permission_handler.dart';
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
 
+  static const String routeName = '/map';
+
   @override
   State<MapScreen> createState() => _MapScreenState();
 }

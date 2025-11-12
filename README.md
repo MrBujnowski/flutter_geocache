@@ -51,3 +51,43 @@ Additionally, the app will include **AR mini-games** to make the experience more
 - 🖥 Presentation for defense  
 
 ---
+
+## 🚀 Quick Start
+
+### 1. Nastavení Google Maps API
+
+1. Vytvořte soubor `.env` v kořenovém adresáři:
+   ```
+   GOOGLE_MAPS_API_KEY=your_api_key_here
+   ```
+
+2. Spusťte setup skripty:
+   ```powershell
+   # Pro web
+   python scripts/setup_web_maps.py
+   
+   # Pro Android/iOS
+   python scripts/setup_api_keys.py
+   ```
+
+Více informací v [GOOGLE_MAPS_SETUP.md](GOOGLE_MAPS_SETUP.md)
+
+### 2. Spuštění aplikace
+
+```bash
+flutter pub get
+flutter run
+```
+
+---
+
+## 🔒 Bezpečnost
+
+**DŮLEŽITÉ:** Před commitem do Git vždy zkontrolujte:
+- ✅ `.env` soubor není commitnut (je v `.gitignore`)
+- ✅ `web/index.html` obsahuje placeholder `YOUR_GOOGLE_MAPS_API_KEY_HERE`
+- ✅ Žádné API klíče nejsou v commitnutých souborech
+
+Více informací v [SECURITY.md](SECURITY.md)
+
+---

@@ -48,13 +48,7 @@ dependencies:
   
   # Google Maps for Flutter
   google_maps_flutter: ^2.5.0
-  
-  # Location services
-  geolocator: ^10.1.0
-  
-  # Permission handling
-  permission_handler: ^11.0.1
-  
+    
   # Environment variables
   flutter_dotenv: ^5.1.0
 

@@ -1,42 +1,26 @@
-<<<<<<< HEAD
 import 'package:flutter/material.dart';
-=======
-// lib/src/features/splash/presentation/splash_screen.dart
-
-import 'package:flutter/material.dart';
-import 'dart:async'; // pro použití Timer
-import '../../map/presentation/map_screen.dart'; // import MapScreenu
->>>>>>> fe2b19a1174d637a1fd14c65eb9e84077da34404
+import '../../map/presentation/map_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
-<<<<<<< HEAD
-=======
-  // Konstanty pro routing, které byste měli ideálně definovat v routeru
   static const String routeName = '/splash';
   static const String nextRoute = MapScreen.routeName;
 
->>>>>>> fe2b19a1174d637a1fd14c65eb9e84077da34404
   @override
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
-<<<<<<< HEAD
 class _SplashScreenState extends State<SplashScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   late Animation<double> _scaleAnimation;
 
-=======
-class _SplashScreenState extends State<SplashScreen> {
->>>>>>> fe2b19a1174d637a1fd14c65eb9e84077da34404
   @override
   void initState() {
     super.initState();
     
-<<<<<<< HEAD
     // Inicializace animací
     _animationController = AnimationController(
       duration: const Duration(milliseconds: 2000),
@@ -65,20 +49,12 @@ class _SplashScreenState extends State<SplashScreen> {
     // Po 3 sekundách přejít na MapScreen
     Future.delayed(const Duration(seconds: 3), () {
       if (mounted) {
-        Navigator.of(context).pushReplacementNamed('/map');
+        Navigator.of(context).pushReplacementNamed(SplashScreen.nextRoute);
       }
-=======
-    // Spuštění časovače pro navigaci
-    Timer(const Duration(seconds: 3), () {
-      // Po 3 sekundách přesunout uživatele na MapScreen
-      // (Používáme pushReplacement, aby se uživatel nemohl vrátit zpět)
-      Navigator.of(context).pushReplacementNamed(SplashScreen.nextRoute);
->>>>>>> fe2b19a1174d637a1fd14c65eb9e84077da34404
     });
   }
 
   @override
-<<<<<<< HEAD
   void dispose() {
     _animationController.dispose();
     super.dispose();
@@ -88,17 +64,10 @@ class _SplashScreenState extends State<SplashScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.blueGrey[900],
-=======
-  Widget build(BuildContext context) {
-    return Scaffold(
-      // Použijte barvy z vaší theme, zde je jen placeholder
-      backgroundColor: Colors.blueGrey, 
->>>>>>> fe2b19a1174d637a1fd14c65eb9e84077da34404
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-<<<<<<< HEAD
             // Logo/Icon s animací
             AnimatedBuilder(
               animation: _animationController,
@@ -187,31 +156,10 @@ class _SplashScreenState extends State<SplashScreen> {
                   ),
                 );
               },
-=======
-            // Zde bude ideálně vaše logo
-            // Např.: Image.asset('assets/logo.png', height: 100), 
-            Icon(
-              Icons.map, 
-              size: 100, 
-              color: Colors.white,
-            ),
-            SizedBox(height: 20),
-            Text(
-              'GeoHunt',
-              style: TextStyle(
-                fontSize: 32,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
->>>>>>> fe2b19a1174d637a1fd14c65eb9e84077da34404
             ),
           ],
         ),
       ),
     );
   }
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> fe2b19a1174d637a1fd14c65eb9e84077da34404
