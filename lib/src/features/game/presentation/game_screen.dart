@@ -125,7 +125,7 @@ class _GameScreenState extends State<GameScreen> {
               ),
               const SizedBox(height: 20),
               Text(
-                "Odemknout: ${_cache!.name}",
+                "Odemknout: ${_cache!.displayName}",
                 style: const TextStyle(
                   color: Colors.white,
                   fontSize: 24,
@@ -200,7 +200,7 @@ class _GameScreenState extends State<GameScreen> {
                         color: _won ? Colors.green : Colors.teal,
                         boxShadow: [
                           BoxShadow(
-                            color: (_won ? Colors.green : Colors.teal).withOpacity(0.5),
+                            color: (_won ? Colors.green : Colors.teal).withValues(alpha: 0.5),
                             blurRadius: 20,
                             spreadRadius: 5,
                           )
@@ -220,4 +220,4 @@ class _GameScreenState extends State<GameScreen> {
       ),
     );
   }
-}qq
+}

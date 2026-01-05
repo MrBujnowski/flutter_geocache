@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart'; // Pro přístup k .env proměnným
 import 'package:flutter_geocache/src/features/auth/data/supabase_auth_repository.dart'; // Náš repozitář
 
 class AuthScreen extends StatefulWidget {

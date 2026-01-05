@@ -7,6 +7,9 @@ abstract class CacheRepository {
   Future<List<CacheModel>> getAvailableCaches();
 
   /// Loguje, že uživatel úspěšně odemkl cache s daným ID.
-  /// (Později se propojí se Supabase)
-  Future<void> unlockCache(String cacheId);
+  /// Vrací seznam názvů nově odemčených achievementů (pokud nějaké jsou).
+  Future<List<String>> unlockCache(String cacheId);
+
+  /// Resetuje stav cache (zamkne ji) - pro testovací účely.
+  Future<void> resetCache(String cacheId);
 }
