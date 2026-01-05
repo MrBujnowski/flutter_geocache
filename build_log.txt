@@ -1,0 +1,20 @@
+
+Running Gradle task 'assembleRelease'...                        
+
+FAILURE: Build failed with an exception.
+
+* Where:
+Build file 'C:\Users\tonda\projekty\flutter_geocache\android\app\build.gradle.kts' line: 43
+
+* What went wrong:
+null cannot be cast to non-null type kotlin.String
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights.
+> Get more help at https://help.gradle.org.
+
+BUILD FAILED in 1s
+Running Gradle task 'assembleRelease'...                         1 311ms
+Gradle task assembleRelease failed with exit code 1

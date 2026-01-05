@@ -8,20 +8,26 @@ class MockCacheRepository implements CacheRepository {
   static const List<CacheModel> _mockCaches = [
     CacheModel(
       id: 'cache_praha_001',
-      name: 'Karlův Most',
-      hint: 'Hledej u třetí lampy vlevo.',
+      code: 'CZ-001',
+      type: 'Tradiční',
+      difficulty: 1.5,
+      terrain: 1.5,
       position: LatLng(50.0864, 14.4116), // Karlův most
     ),
     CacheModel(
       id: 'cache_praha_002',
-      name: 'Staroměstské náměstí',
-      hint: 'Pod orlojem',
+      code: 'CZ-002',
+      type: 'Mystery',
+      difficulty: 3.0,
+      terrain: 2.0,
       position: LatLng(50.0874, 14.4214), // Staroměstské náměstí
     ),
     CacheModel(
       id: 'cache_praha_003',
-      name: 'Petřínská věž',
-      hint: 'Vysoká, železná konstrukce.',
+      code: 'CZ-003',
+      type: 'Multi',
+      difficulty: 2.5,
+      terrain: 3.5,
       position: LatLng(50.0817, 14.3946), // Petřínská rozhledna
     ),
   ];
@@ -37,8 +43,14 @@ class MockCacheRepository implements CacheRepository {
   }
 
   @override
-  Future<void> unlockCache(String cacheId) async {
+  Future<List<String>> unlockCache(String cacheId) async {
     await Future.delayed(const Duration(milliseconds: 100));
     _unlockedCacheIds.add(cacheId);
+    return []; // Mock achievementy
+  }
+
+  @override
+  Future<void> resetCache(String cacheId) async {
+    _unlockedCacheIds.remove(cacheId);
   }
 }

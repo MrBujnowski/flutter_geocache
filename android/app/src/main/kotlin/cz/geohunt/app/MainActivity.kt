@@ -1,4 +1,4 @@
-package com.example.flutter_geocache
+package cz.geohunt.app
 
 import io.flutter.embedding.android.FlutterActivity
 
