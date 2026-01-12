@@ -65,20 +65,20 @@ class NavigationOverlay extends StatelessWidget {
                  margin: const EdgeInsets.only(bottom: 12),
                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                  decoration: BoxDecoration(
-                   color: Colors.white.withOpacity(0.9),
+                   color: Colors.white, // Fully opaque for better contrast
                    borderRadius: BorderRadius.circular(20),
                    boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 4)],
                  ),
                  child: Row(
                    mainAxisSize: MainAxisSize.min,
                    children: [
-                      const Icon(Icons.timer, size: 16, color: Colors.blueGrey),
-                      const SizedBox(width: 4),
-                      Text(manager.remainingDurationFormatted, style: const TextStyle(fontWeight: FontWeight.bold)),
-                      const SizedBox(width: 16),
-                      const Icon(Icons.straighten, size: 16, color: Colors.blueGrey),
-                      const SizedBox(width: 4),
-                      Text(manager.remainingDistanceFormatted, style: const TextStyle(fontWeight: FontWeight.bold)),
+                      const Icon(Icons.timer, size: 20, color: Colors.black87),
+                      const SizedBox(width: 6),
+                      Text(manager.remainingDurationFormatted, style: const TextStyle(color: Colors.black87, fontSize: 16, fontWeight: FontWeight.w900)),
+                      const SizedBox(width: 20),
+                      const Icon(Icons.straighten, size: 20, color: Colors.black87),
+                      const SizedBox(width: 6),
+                      Text(manager.remainingDistanceFormatted, style: const TextStyle(color: Colors.black87, fontSize: 16, fontWeight: FontWeight.w900)),
                    ],
                  ),
                ),

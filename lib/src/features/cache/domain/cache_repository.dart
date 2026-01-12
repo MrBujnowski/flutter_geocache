@@ -12,4 +12,9 @@ abstract class CacheRepository {
 
   /// Resetuje stav cache (zamkne ji) - pro testovací účely.
   Future<void> resetCache(String cacheId);
+
+  // Ratings
+  Future<double> getAverageRating(String cacheId);
+  Future<List<Map<String, dynamic>>> getReviews(String cacheId);
+  Future<void> addReview(String cacheId, int rating, String comment);
 }

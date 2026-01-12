@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:provider/provider.dart';
 
-// Importy tvých vlastních souborů
 import 'features/splash/presentation/splash_screen.dart';
 import 'features/map/presentation/map_screen.dart';
 import 'features/game/presentation/game_screen.dart';
-import 'features/compass/presentation/compass_screen.dart'; // Import nového screenu
+import 'features/compass/presentation/compass_screen.dart';
 import 'features/auth/presentation/auth_screen.dart';
+import 'features/home/presentation/main_screen.dart'; // New Main Screen
 
-import 'package:provider/provider.dart';
 import 'features/cache/domain/cache_repository.dart';
 import 'features/cache/data/supabase_cache_repository.dart';
 import 'features/cache/presentation/logbook_screen.dart';
@@ -20,7 +20,6 @@ import 'features/profile/presentation/profile_screen.dart';
 import 'features/profile/presentation/edit_profile_screen.dart';
 import 'features/achievements/presentation/achievements_screen.dart';
 import 'features/settings/presentation/settings_screen.dart';
-import 'features/settings/presentation/settings_screen.dart';
 import 'features/settings/application/settings_service.dart';
 import 'features/map/application/navigation_manager.dart';
 
@@ -29,8 +28,6 @@ class App extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // POZNÁMKA: AppTheme musela být vytvořena samostatně
-    // Používáme zde jen placeholder pro Theme, pokud není definován AppTheme.
     final lightTheme = ThemeData.light(useMaterial3: true);
     final darkTheme = ThemeData.dark(useMaterial3: true);
 
@@ -56,12 +53,13 @@ class App extends StatelessWidget {
             
             theme: lightTheme, 
             darkTheme: darkTheme, 
-            themeMode: settings.themeMode, // Dynamický režim
+            themeMode: settings.themeMode,
             
             home: const AuthGuard(), 
           
             routes: {
               SplashScreen.routeName: (context) => const SplashScreen(),
+              MainScreen.routeName: (context) => const MainScreen(),
               MapScreen.routeName: (context) => const MapScreen(),
               GameScreen.routeName: (context) => const GameScreen(),
               AuthScreen.routeName: (context) => const AuthScreen(),
@@ -71,12 +69,12 @@ class App extends StatelessWidget {
                  final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
                  return CompassScreen(
                    targetCache: args['targetCache'],
+                   initialUserPosition: args['initialUserPosition'],
                  );
               },
               EditProfileScreen.routeName: (context) => const EditProfileScreen(),
               AchievementsScreen.routeName: (context) => const AchievementsScreen(),
               SettingsScreen.routeName: (context) => const SettingsScreen(),
-              // Logbook Route s argumenty
               LogbookScreen.routeName: (context) {
                 final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
                 return LogbookScreen(
@@ -92,43 +90,32 @@ class App extends StatelessWidget {
   }
 }
 
-// Speciální widget pro kontrolu autentizace
 class AuthGuard extends StatelessWidget {
-const AuthGuard({super.key});
+  const AuthGuard({super.key});
 
-// Stream, který sleduje, zda se uživatel přihlásil/odhlásil
-Stream<AuthState> get _authStream => Supabase.instance.client.auth.onAuthStateChange;
+  Stream<AuthState> get _authStream => Supabase.instance.client.auth.onAuthStateChange;
 
-@override
-Widget build(BuildContext context) {
-// Sledujeme stav Supabase
-return StreamBuilder<AuthState>(
-stream: _authStream,
-builder: (context, snapshot) {
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<AuthState>(
+      stream: _authStream,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Scaffold(
+                body: Center(
+                    child: CircularProgressIndicator(color: Colors.teal),
+                ),
+            );
+        }
 
-    // Stav 1: Čekání na první stav Auth po inicializaci
-    if (snapshot.connectionState == ConnectionState.waiting) {
-        // Místo SplashScreenu (který má časovač) zobrazíme jen loading
-        return const Scaffold(
-            body: Center(
-                child: CircularProgressIndicator(color: Colors.teal),
-            ),
-        );
-    }
+        final bool isSignedIn = snapshot.data?.session?.user != null;
 
-    // Stav 2: Kontrola, zda je uživatel přihlášen (session je platná)
-    final bool isSignedIn = snapshot.data?.session?.user != null;
-
-    if (isSignedIn) {
-      // Pokud je přihlášen, jdeme rovnou na Mapu
-      return const MapScreen();
-    } else {
-      // Pokud není přihlášen, jdeme na Login obrazovku
-      return const AuthScreen();
-    }
-  },
-);
-
-
-}
+        if (isSignedIn) {
+          return const MainScreen();
+        } else {
+          return const AuthScreen();
+        }
+      },
+    );
+  }
 }

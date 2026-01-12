@@ -76,6 +76,7 @@ class CompassWidget extends StatelessWidget {
             arguments: {
               'targetCache': targetCache,
               'initialDistance': distance,
+              'initialUserPosition': userPosition, // Pass current position
             }
           );
         }

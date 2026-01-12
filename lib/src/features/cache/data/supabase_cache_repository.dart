@@ -99,86 +99,147 @@ class SupabaseCacheRepository implements CacheRepository {
   }
 
   @override
+  // Ratings
+  Future<double> getAverageRating(String cacheId) async {
+    try {
+      final response = await _supabase
+          .from('cache_reviews')
+          .select('rating')
+          .eq('cache_id', cacheId);
+          
+      if (response == null || (response as List).isEmpty) return 0.0;
+      
+      final list = response as List;
+      final sum = list.fold<int>(0, (prev, elem) => prev + (elem['rating'] as int));
+      return sum / list.length;
+    } catch (e) {
+      // Table might not exist yet
+      return 0.0;
+    }
+  }
+  
+  Future<List<Map<String, dynamic>>> getReviews(String cacheId) async {
+      print("🔍 getReviews called for cache: $cacheId");
+      try {
+          // Remove created_at from select AND order to avoid ambiguous column error
+          // (both cache_reviews and profiles have created_at)
+          final response = await _supabase
+             .from('cache_reviews')
+             .select('rating, comment, profiles(username)')
+             .eq('cache_id', cacheId)
+             .limit(10);  // Removed .order() - it was causing ambiguous column error
+          
+          print("✅ Reviews response: $response");
+          print("📊 Reviews count: ${(response as List).length}");
+          
+          final reviewsList = List<Map<String, dynamic>>.from(response);
+          print("📝 Parsed reviews: $reviewsList");
+          
+          return reviewsList;
+      } catch (e) {
+          print("❌ Error fetching reviews: $e");
+          return [];
+      }
+  }
+
+  Future<void> addReview(String cacheId, int rating, String comment) async {
+      final userId = _supabase.auth.currentUser?.id;
+      if (userId == null) throw Exception("User not logged in");
+      
+      // Check if review exists (handle inconsistent state with limit(1))
+      final existingResponse = await _supabase
+          .from('cache_reviews')
+          .select('id')
+          .eq('user_id', userId)
+          .eq('cache_id', cacheId)
+          .limit(1)
+          .maybeSingle();
+
+      if (existingResponse != null) {
+         // Update existing
+         await _supabase.from('cache_reviews').update({
+            'rating': rating,
+            'comment': comment,
+         }).eq('id', existingResponse['id']);
+      } else {
+         // Insert new
+         await _supabase.from('cache_reviews').insert({
+            'cache_id': cacheId,
+            'user_id': userId,
+            'rating': rating,
+            'comment': comment,
+         });
+      }
+  }
+
+  bool _initialSyncDone = false;
+
+  Future<void> _syncWithServer() async {
+      if (_initialSyncDone || !(await _isOnline)) return;
+      
+      try {
+          // 1. Fetch all server IDs
+          final response = await _supabase.from('geocaches').select('id');
+          final serverIds = (response as List).map((e) => e['id'] as String).toSet();
+          
+          // 2. Fetch all local IDs
+          final localCaches = await _offlineService.getAllCaches();
+          final localIds = localCaches.map((c) => c.id).toSet();
+          
+          // 3. Find deleted (in Local but not Server)
+          final deletedIds = localIds.difference(serverIds);
+          for (final id in deletedIds) {
+              await _offlineService.deleteCache(id);
+          }
+          
+          // 4. Find new (in Server but not Local) - Optional: Auto-download?
+          // For now, we rely on manual "Download" for bulk data, 
+          // but if we want to be consistent, we should perhaps download them.
+          // Given 78k scale, we skip auto-download of huge data here 
+          // to avoid "Freezing" on start. User can press "Download Data".
+          
+          _initialSyncDone = true;
+      } catch (e) {
+          print("Sync error: $e");
+      }
+  }
+
+  @override
   Future<List<CacheModel>> getAvailableCaches() async {
-    // Hybridní logika: 
-    // 1. Primárně vracíme data z lokální DB (rychlé, offline-ready).
-    // 2. Pokud je lokální DB prázdná a jsme online, zkusíme fetch (falback).
-    
-    // Načteme lokální cache
+    // Load Local data FIRST - NO BLOCKING OPERATIONS!
     List<CacheModel> caches = await _offlineService.getAllCaches();
     
-    // Check if we need to fetch from server
+    print("📦 Loaded ${caches.length} caches from local DB");
+    
+    // No sync, no auto-download - keep it FAST!
+    // User can manually download via "Download" button if needed
+    
+    // Apply Logs (Unlock State) - this is fast
     if (await _isOnline) {
        final userId = _supabase.auth.currentUser?.id;
        if (userId != null) {
           try {
-            // Získáme aktuální polohu pro filtrování
-            // Poznámka: v reálné aplikaci bychom měli polohu předat jako argument,
-            // ale Repository by nemělo přímo záviset na Geolocatoru pokud to není nutné.
-            // Zde pro zjednodušení použijeme poslední známou nebo default.
-             
-             // TODO: Pro správnou funkčnost '5 nejbližších' potřebujeme user coordinates.
-             // Jelikož metoda getAvailableCaches je bez argumentů, musíme to vyřešit jinak.
-             // Možnosti: 
-             // 1. Změnit signaturu metody (breaking change).
-             // 2. Získat polohu zde (Geolocator).
-             
-             // Zkusíme variantu 2, pokud selže, fallback na offline.
-             // Import geolocator je potřeba přidat, pokud tu není.
-             // Ale wait, Repository by nemělo dělat UI permissions.
-             // Předpokládáme, že permissions už jsou.
-             
-             /* 
-                Vylepšení: Místo volání RPC v 'getAvailableCaches' (což je inicializační load),
-                bychom měli mít metodu 'refreshCaches(LatLng position)'.
-                Ale pro teď:
-             */
-             
-             // Volání RPC get_visible_caches
-             // Potřebujeme params: user_lat, user_lon, user_id
-             // Pokud nemáme polohu, nemůžeme volat RPC efektivně pro hráče.
-             
-             // DOČASNÉ ŘEŠENÍ: Pokud je DB prázdná, stáhneme ALL (jako dřív), 
-             // ALE s vědomím, že to může být drahé.
-             // A "Filtering" udělá server nebo klient?
-             // Zadání znělo: "normální hráč může vidět jenom 5 nejbližších".
-             // To implikuje Server-Side filtering.
-             
-             // Takže musíme volat RPC.
+            // Fetch Server Logs
+            final myLogs = await _supabase.from('logs').select('cache_id').eq('user_id', userId);
+            final foundIds = (myLogs as List).map((l) => l['cache_id'] as String).toSet();
+            
+            // Fetch Offline Pending Logs
+            final pendingLogs = await _offlineService.getPendingLogs();
+            final pendingIds = pendingLogs.map((l) => l['cache_id'] as String).toSet();
+            
+            final allFoundIds = foundIds.union(pendingIds);
+
+            // Update cache state
+            caches = caches.map((c) => c.copyWith(isUnlocked: allFoundIds.contains(c.id))).toList();
           } catch (e) {
-             print('Error fetching visible caches: $e');
+            print("Error fetching logs: $e");
           }
        }
-    }
-    
-    // PŮVODNÍ IMPLEMENTACE (modifikovaná):
-    if (caches.isEmpty && (await _isOnline)) {
-       try {
-          // Zde je problém: downloadAllCaches stahuje VŠE (78k).
-          // Pokud je uživatel 'player', neměl by mít všechno v lokální DB?
-          // NEBO: Má všechno v DB (pro offline), ale ZOBRAZÍ se mu jen 5?
-          // Zadání: "normální hráč může vidět jenom 5 nejbližších".
-          // "vidět" = na mapě.
-          // Pokud je to "vidět na mapě", můžeme filtrovat v UI (MapScreen).
-          // Ale bezpečnější je filtrovat data.
-          
-          // Pokud chceme aby "viděl" jen 5, tak downloadAllCaches je pro něj zakázané/omezené?
-          // Uživatel zadal v bodě 1: "Ensure all ~78,000 caches ... can be downloaded".
-          // Takže data MÁME. Jen je neukazujeme všechny naraz.
-          
-          await downloadAllCaches();
-          caches = await _offlineService.getAllCaches();
-       } catch (_) {}
-    }
-
-    if (await _isOnline) {
-       // Sync logs...
-       final userId = _supabase.auth.currentUser?.id;
-       if (userId != null) {
-          final myLogs = await _supabase.from('logs').select('cache_id').eq('user_id', userId);
-          final foundIds = (myLogs as List).map((l) => l['cache_id'] as String).toSet();
-          caches = caches.map((c) => c.copyWith(isUnlocked: foundIds.contains(c.id) || c.isUnlocked)).toList();
-       }
+    } else {
+        // Offline: Trust Local DB + Pending Logs
+        final pendingLogs = await _offlineService.getPendingLogs();
+        final pendingIds = pendingLogs.map((l) => l['cache_id'] as String).toSet();
+        caches = caches.map((c) => c.copyWith(isUnlocked: c.isUnlocked || pendingIds.contains(c.id))).toList();
     }
 
     return caches;
@@ -196,30 +257,26 @@ class SupabaseCacheRepository implements CacheRepository {
         await _supabase.from('geocaches').delete().eq('id', cacheId);
      }
      // Smazat lokálně
-     // _offlineService.deleteCache(cacheId); // To-do implementation
-     // Zatím jen reload
+     await _offlineService.deleteCache(cacheId);
   }
 
   @override
   Future<List<String>> unlockCache(String cacheId) async {
     final userId = _supabase.auth.currentUser?.id;
     if (userId == null) return []; 
-
+    // ... logic remains ...
     if (await _isOnline) {
       try {
         await _supabase.from('logs').insert({
           'user_id': userId,
           'cache_id': cacheId,
         });
-        // Check achievements
         return await _achievementRepo.checkAndUnlockAchievements(currentCacheId: cacheId);
       } catch (e) {
-         // Síťová chyba při unlocku -> Uložit offline
          await _offlineService.saveOfflineLog(userId, cacheId);
-         return []; // V offline režimu achievementy hned nevrátíme
+         return []; 
       }
     } else {
-       // Jsme offline -> Uložit offline
        await _offlineService.saveOfflineLog(userId, cacheId);
        return [];
     }
@@ -228,19 +285,37 @@ class SupabaseCacheRepository implements CacheRepository {
   @override
   Future<void> resetCache(String cacheId) async {
     final userId = _supabase.auth.currentUser?.id;
-    if (userId == null) return;
+    if (userId == null) {
+      print("Reset failed: No user logged in");
+      return;
+    }
     
+    print("Resetting cache $cacheId for user $userId");
+    
+    // 1. Reset Local
+    await _offlineService.lockCache(cacheId);
+    print("Local cache locked");
+
+    // 2. Reset Server
     if (await _isOnline) {
-       await _supabase
-        .from('logs')
-        .delete()
-        .eq('user_id', userId)
-        .eq('cache_id', cacheId);
+       try {
+         await _supabase
+          .from('logs')
+          .delete()
+          .eq('user_id', userId)
+          .eq('cache_id', cacheId);
+         print("Server log deleted successfully");
+       } catch (e) {
+         print("Reset error: $e");
+         rethrow;
+       }
+    } else {
+      print("Offline - skipping server reset");
     }
   }
 
   Future<List<Map<String, dynamic>>> getLogsForCache(String cacheId) async {
-    if (!(await _isOnline)) return []; // Offline logbook zatím nepodporujeme (jen online)
+    if (!(await _isOnline)) return []; 
 
     final response = await _supabase
         .from('logs')

@@ -11,8 +11,13 @@ class CompassScreen extends StatefulWidget {
   static const String routeName = '/compass';
 
   final CacheModel targetCache;
+  final LatLng? initialUserPosition; // Add this
 
-  const CompassScreen({super.key, required this.targetCache});
+  const CompassScreen({
+    super.key, 
+    required this.targetCache,
+    this.initialUserPosition, // Add this
+  });
 
   @override
   State<CompassScreen> createState() => _CompassScreenState();
@@ -24,6 +29,7 @@ class _CompassScreenState extends State<CompassScreen> {
   @override
   void initState() {
     super.initState();
+    _userPosition = widget.initialUserPosition; // Set initial position immediately
     _startLocationUpdates();
   }
 

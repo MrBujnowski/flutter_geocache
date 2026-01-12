@@ -74,23 +74,61 @@ class NavigationManager extends ChangeNotifier {
     notifyListeners();
   }
 
+  int _lastClosestIndex = 0;
+
   // Aktualizace během pohybu (volat z MapScreen při změně polohy)
   void updateProgress(LatLng userPosition) {
-    if (!isNavigating || _currentRoute == null) return;
+    if (!isNavigating || _currentRoute == null || _currentRoute!.geometry.isEmpty) return;
 
-    // 1. Zjistit, zda jsme splnili aktuální krok
-    // Jednoduchá logika: Pokud jsme blízko konce aktuálního kroku (manévru), posuneme se na další.
-    // Nebo: Pokud jsme blízko DALŠÍHO manévru.
+    // 1. Update Geometry (Visual - Disappearing line)
+    // Find closest point index starting from last known index (optimization)
+    int closestIndex = _lastClosestIndex;
+    double minDistance = double.infinity;
     
-    // Pro jednoduchost: Najdeme nejbližší "začátek manévru" v budoucnosti?
-    // Lepší: OSRM vrací kroky. Každý krok končí manévrem.
-    // _currentStep je ten, který právě plníme (např. "Jděte rovně po Main St").
-    // Musíme detekovat, že jsme dorazili na konec tohoto segmentu.
+    // Search window: Look ahead 50 points (or to end)
+    int searchEnd = (_lastClosestIndex + 50).clamp(0, _currentRoute!.geometry.length);
     
-    // Zatím ultra-simple: Zobrazujeme prostě jen nejbližší manévr podle vzdálenosti.
-    // Ale to by skákalo.
+    // Also look back a bit in case of jitter
+    int searchStart = (_lastClosestIndex - 5).clamp(0, _currentRoute!.geometry.length);
     
-    // Zkusme toto: Pokud je vzdálenost k 'lokaci dalšího kroku' menší než 20 metrů, přepni na další.
+    // Fallback: If we are very far, search whole list (re-route scenario?)
+    // For now, simple search.
+    
+    for (int i = searchStart; i < searchEnd; i++) {
+        final d = app_dist.DistanceCalculator.calculateDistance(userPosition, _currentRoute!.geometry[i]);
+        if (d < minDistance) {
+            minDistance = d;
+            closestIndex = i;
+        }
+    }
+    
+    // If we moved forward significantly
+    if (closestIndex > _lastClosestIndex) {
+        // Remove points behind us
+        // Efficiently updating the list might be slow if standard List.
+        // We can just keep an index offset? 
+        // But PolylineLayer needs a list.
+        // Let's modify the list directly for now as simple solution.
+        _currentRoute!.geometry.removeRange(0, closestIndex - _lastClosestIndex);
+        _lastClosestIndex = 0; // Since we removed elements, index 0 is now the closest
+    } 
+    // Wait, modifying the list resets indices.
+    // Correct approach:
+    // If we found new closest index 'i' in the *current* list.
+    // Remove 0..i.
+    
+    // Fix logic:
+    // 'closestIndex' is index in the CURRENT geometry list.
+    if (closestIndex > 0) {
+        // Only slice if we are comfortably close (e.g. within 50m of the line)
+        // If we are far, maybe we shouldn't slice? 
+        if (minDistance < 50) {
+           _currentRoute!.geometry.removeRange(0, closestIndex);
+        }
+    }
+
+
+    // 2. Update Instructions (Step Logic)
     if (_currentStepIndex < _currentRoute!.steps.length - 1) {
        final nextStep = _currentRoute!.steps[_currentStepIndex + 1];
        final distToNextManeuver = app_dist.DistanceCalculator.calculateDistance(
@@ -98,10 +136,13 @@ class NavigationManager extends ChangeNotifier {
          nextStep.location
        );
 
-       if (distToNextManeuver < 20) { // 20 metrů tolerance
+       // Distance to switch triggers
+       if (distToNextManeuver < 30) { // 30 meters tolerance
          _currentStepIndex++;
          notifyListeners();
        }
     }
+    
+    notifyListeners();
   }
 }

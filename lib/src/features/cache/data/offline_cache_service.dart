@@ -102,6 +102,16 @@ class OfflineCacheService {
     return result.map(_mapRowToCache).toList();
   }
 
+  Future<void> deleteCache(String cacheId) async {
+    if (kIsWeb) return;
+    final db = await database;
+    await db.delete(
+      'caches',
+      where: 'id = ?',
+      whereArgs: [cacheId],
+    );
+  }
+
   // --- METHODS FOR LOGS ---
 
   Future<void> saveOfflineLog(String userId, String cacheId) async {
@@ -116,6 +126,17 @@ class OfflineCacheService {
     await db.update(
       'caches',
       {'is_unlocked': 1},
+      where: 'id = ?',
+      whereArgs: [cacheId],
+    );
+  }
+
+  Future<void> lockCache(String cacheId) async {
+    if (kIsWeb) return;
+    final db = await database;
+    await db.update(
+      'caches',
+      {'is_unlocked': 0},
       where: 'id = ?',
       whereArgs: [cacheId],
     );

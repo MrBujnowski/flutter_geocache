@@ -82,19 +82,43 @@ class _LeaderboardTab extends StatelessWidget {
             final entry = entries[index];
             final isTop3 = index < 3;
             
+            // Custom Trophies
+            Widget trailingWidget;
+            if (index == 0) {
+              trailingWidget = Row(mainAxisSize: MainAxisSize.min, children: [
+                Text('${entry.findsCount}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                const SizedBox(width: 5),
+                const Icon(Icons.emoji_events, color: Color(0xFFFFD700), size: 28), // Gold
+              ]);
+            } else if (index == 1) {
+              trailingWidget = Row(mainAxisSize: MainAxisSize.min, children: [
+                Text('${entry.findsCount}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                const SizedBox(width: 5),
+                const Icon(Icons.emoji_events, color: Color(0xFFC0C0C0), size: 26), // Silver
+              ]);
+            } else if (index == 2) {
+              trailingWidget = Row(mainAxisSize: MainAxisSize.min, children: [
+                Text('${entry.findsCount}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                const SizedBox(width: 5),
+                const Icon(Icons.emoji_events, color: Color(0xFFCD7F32), size: 24), // Bronze
+              ]);
+            } else {
+              trailingWidget = Text(
+                '${entry.findsCount} 📦', // Just Box/Cache icon or nothing
+                style: const TextStyle(fontSize: 14, color: Colors.grey),
+              );
+            }
+
             return ListTile(
               leading: CircleAvatar(
-                backgroundColor: isTop3 ? Colors.amber : Colors.grey[300],
+                backgroundColor: isTop3 ? Colors.teal.shade100 : Colors.grey[200],
                 backgroundImage: entry.avatarUrl != null ? NetworkImage(entry.avatarUrl!) : null,
                 child: entry.avatarUrl == null
-                    ? Text('${index + 1}', style: TextStyle(color: isTop3 ? Colors.black : Colors.black87))
+                    ? Text('${index + 1}', style: TextStyle(color: Colors.teal.shade900))
                     : null,
               ),
               title: Text(entry.username, style: const TextStyle(fontWeight: FontWeight.bold)),
-              trailing: Text(
-                '${entry.findsCount} 🏆',
-                style: const TextStyle(fontSize: 16, color: Colors.teal),
-              ),
+              trailing: trailingWidget,
             );
           },
         );
